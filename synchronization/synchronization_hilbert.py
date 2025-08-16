@@ -185,26 +185,3 @@ def synchronization(data, lbands, hbands, window_length, window_overlap,
         gc.collect()
     
     return output
-
-
-if __name__ == '__main__':
-    # Load the EDF file
-    file_path = '..\\..\\Dataset\\chb-mit-scalp-eeg-database-1.0.0\\chb01\\chb01_01.edf'
-    raw = mne.io.read_raw_edf(file_path, preload=True, verbose=False)
-
-    # Display basic information
-    data, times = raw[:]
-    data = data.T
-
-    # Test functions with windowing
-    window_size = 256
-    step_size = 0.5
-    method = 'wpli'
-    window_name = 'hann'  # You can change this to 'hamming', 'blackman', 'bartlett', etc.
-
-    # Use the faster implementation with windowing
-    result = synchronization(
-        data, [0.5, 4, 8], [4, 8, 13], window_size, step_size, 
-        method=method, window_name=window_name, n_jobs=3, uncache_data=True
-    )
-    result.tofile('new.txt', sep=' ', format='%.6f')

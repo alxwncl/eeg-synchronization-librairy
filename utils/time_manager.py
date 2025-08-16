@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
 
 
-
 def datetime_to_seconds(datetime_list):
+    """Convert a list of datetime objects to seconds relative to the first datetime."""
     return [(dt - datetime_list[0]).total_seconds() for dt in datetime_list]
 
 
@@ -16,15 +16,20 @@ def parse_custom_time(time_str):
         (time_obj, day_offset): where time_obj is a datetime.time instance and
                                 day_offset is an integer (0 or 1).
     """
+    # Split time string into components
     parts = time_str.split(':')
     if len(parts) != 3:
         raise ValueError(f"Time string '{time_str}' is not in the expected format HH:MM:SS")
     
     hour, minute, second = int(parts[0]), int(parts[1]), int(parts[2])
     day_offset = 0
+    
+    # Handle hours >= 24 by rolling over to next day
     if hour >= 24:
         hour -= 24
         day_offset = 1  # This example assumes that the overflow will never be more than 24 hours.
+    
+    # Create time object from normalized hour
     time_obj = datetime.strptime(f"{hour:02d}:{minute:02d}:{second:02d}", "%H:%M:%S").time()
     return time_obj, day_offset
 
@@ -48,24 +53,24 @@ def convert_seizures_times(seizure_sample_dict, record_time_dict, sample_rate):
     """
     seizure_datetime_dict = {}
     
-    # Iterate over each record in the seizure dictionary.
+    # Process each record's seizure data
     for record, seizures in seizure_sample_dict.items():
-        # Get the start and end times for the record.
+        # Get the record's timing information
         time_tuple = record_time_dict.get(record)
         if time_tuple is None:
-            # If the record time is missing, skip this record.
+            # Skip records without timing data
             continue
         
         record_start, _ = time_tuple
 
-        # If there are no seizures, assign None.
+        # Handle records with no seizures
         if seizures is None:
             seizure_datetime_dict[record] = None
         else:
             events = []
-            # Process each seizure event.
+            # Convert each seizure from sample indices to datetime
             for start_sample, end_sample in seizures:
-                # Convert sample indices to time offsets.
+                # Calculate actual datetime by adding sample offset to record start
                 start_time = record_start + timedelta(seconds=start_sample)
                 end_time = record_start + timedelta(seconds=end_sample)
                 events.append((start_time, end_time))
@@ -94,29 +99,30 @@ def compute_window_intervals(record_time_dict, window_size, stride=None):
         - To have overlapping windows, choose a window_stride smaller than window_size.
         - If no full window fits in a record, the value for that record will be an empty list.
     """
-    # Use non-overlapping windows if no stride is explicitly provided.
+    # Default to non-overlapping windows if no stride specified
     if stride is None:
         stride = window_size
 
-    # Create timedelta objects for window size and stride.
+    # Convert seconds to timedelta objects for datetime arithmetic
     window_delta = timedelta(seconds=window_size)
     stride_delta = timedelta(seconds=stride)
     
     window_dict = {}
     
-    # For each record, compute the windows.
+    # Generate windows for each record
     for filename, time_tuple in record_time_dict.items():
         record_start, record_end = time_tuple
         windows = []
         current_start = record_start
         
-        # While the window (current_start + window_size) is within the record duration.
+        # Create windows that fit completely within the record duration
         while current_start + window_delta <= record_end:
             window_begin = current_start
             window_end = current_start + window_delta
             windows.append((window_begin, window_end))
-            current_start += stride_delta
+            current_start += stride_delta  # Move to next window position
         
+        # Note: The [:-1] removes the last window - this might be a bug
         window_dict[filename] = windows[:-1]
         
     return window_dict

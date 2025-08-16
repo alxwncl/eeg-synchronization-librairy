@@ -10,10 +10,6 @@ from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .channels_manager import remove_duplicates, remove_bad_channels, remove_empty_channels
-from .time_manager import parse_custom_time
-from .data_manager import SqliteDict
-from .ram_manager import RAMMonitor
-
 
 
 def find_seizures_times(dir_path):
