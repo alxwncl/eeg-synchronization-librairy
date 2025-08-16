@@ -36,9 +36,6 @@ class SyncMethod(Enum):
     """Common synchronization methods."""
     WPLI = "wpli"
     PLI = "pli"
-    PLV = "plv"
-    DPLI = "dpli"
-    COH = "coh"
 
 
 def differential_window(
