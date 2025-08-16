@@ -1,0 +1,9 @@
+joblib==1.4.2
+mne==1.10.1
+numba==0.61.2
+numpy==2.3.2
+psutil==7.0.0
+pytest==8.3.5
+scipy==1.16.1
+tqdm==4.67.1
+tqdm_joblib==0.0.4
